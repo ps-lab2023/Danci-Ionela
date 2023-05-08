@@ -48,4 +48,9 @@ public class CartItemDto {
     public void setProduct(Product product) {
         this.product = product;
     }
+
+    public String prettyPrint() {
+        String s="\to "+product.getName() +"\tPrice=  "+product.getPrice()+"$\n\n";
+        return s;
+    }
 }

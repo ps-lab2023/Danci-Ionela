@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import com.example.demo.Dto.ProductDto;
+import com.example.demo.Dto.WishListDto;
 import com.example.demo.model.Product;
 import com.example.demo.model.User;
 import com.example.demo.model.WishList;
@@ -11,12 +13,18 @@ import java.util.Optional;
 
 @Component
 public interface WishListService {
-    WishList createWishList(WishList wishList);
 
-    List<Product> getWishList(User user);
+    @SneakyThrows
+    WishListDto createWishList(String email, Long productId);
+
+    @SneakyThrows
+    List<ProductDto> getWishList(String email);
 
     Optional<WishList> findById(Long id);
 
     @SneakyThrows
     void deleteWishList(Long id);
+
+    @SneakyThrows
+    void delete_from_wishlist(String email, Long productId);
 }

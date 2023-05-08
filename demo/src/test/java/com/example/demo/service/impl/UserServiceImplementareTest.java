@@ -1,13 +1,7 @@
 package com.example.demo.service.impl;
-
-import com.example.demo.enums.ActivityType;
-import com.example.demo.enums.Category;
+import com.example.demo.Dto.UserResponse;
 import com.example.demo.enums.UserType;
-import com.example.demo.model.ActivityLog;
-import com.example.demo.model.Product;
 import com.example.demo.model.User;
-import com.example.demo.repository.ActivityLogRepository;
-import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,12 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.util.List;
 import java.util.Optional;
-
 import static java.util.Objects.isNull;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -33,13 +23,10 @@ class UserServiceImplementareTest {
     @Mock
     private UserRepository userRepository;
 
-    @Mock
-    private ActivityLogRepository activityLogRepository;
-
     @BeforeEach
     void setUp(){
         autoCloseable= MockitoAnnotations.openMocks(this);
-        underTest=new UserServiceImplementare(userRepository,activityLogRepository);
+        underTest=new UserServiceImplementare(userRepository);
     }
 
     @AfterEach
@@ -55,8 +42,8 @@ class UserServiceImplementareTest {
         underTest.updateUser(newUser,user.getUserId());
         verify(userRepository).save(newUser);
         verify(userRepository).findByUserId(user.getUserId());
-
     }
+
     @Test
     void should_throw_exception_when_product_doesnt_existUpdate() {
         User user=new User("User1@gmail.com","user1",UserType.BUYER);
@@ -67,15 +54,11 @@ class UserServiceImplementareTest {
         Exception exception = assertThrows(Exception.class, () -> {
             underTest.updateUser(newUser,user.getUserId());
         });
-
     }
 
     @Test
     void findAll() {
-        //when
         underTest.findAll();
-
-        //then
         verify(userRepository).findAll();
     }
 
@@ -84,10 +67,8 @@ class UserServiceImplementareTest {
         User user=new User("User1@gmail.com","user1",UserType.BUYER);
         user.setUserId(1L);
         when(userRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(user));
-
         Optional<User> p=underTest.findById(1L);
         assert(p.isPresent());
-
         assert(1L == p.get().getUserId());
     }
 
@@ -95,91 +76,74 @@ class UserServiceImplementareTest {
     void findByIdTestWhenIdDoesntExist() {
         when(userRepository.findByUserId(12L)).thenReturn(null);
         Optional<User> p=underTest.findById(12L);
-
         assert(isNull(p));
     }
 
-
     @Test
     void registerWhenCorrectEmailAndPassword() {
-        ActivityLog entity = new ActivityLog();
-        entity.setEmail("user1@gmail.com");
-        entity.setActivity(ActivityType.REGISTER);
-        when(activityLogRepository.save(ArgumentMatchers.any(ActivityLog.class))).thenReturn(entity);
+        String email="user1@gmail.com";
+        User user=new User(email,"qwshgyx",UserType.BUYER);
+        user.setUserId(1L);
+        when(userRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(user));
+        when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
 
-        User created=underTest.register(new User(entity.getEmail(),"qwshgyx",UserType.BUYER));
-
-
-        assert(created.getEmail()).equals(entity.getEmail());
+        User created=underTest.register(user);
+        assert(created.getEmail()).equals(email);
     }
+
     @Test
     void registerWhenIncorrectEmailAndPassword() {
-        ActivityLog entity = new ActivityLog();
-        entity.setEmail("user1@gmail.com");
-        entity.setActivity(ActivityType.REGISTER);
-        when(activityLogRepository.save(ArgumentMatchers.any(ActivityLog.class))).thenReturn(entity);
-
+        String email="user1@gmail.com";
         Exception exception = assertThrows(Exception.class, () -> {
-            User created=underTest.register(new User(entity.getEmail(),"qwsx",UserType.BUYER));
+            User created=underTest.register(new User(email,"qwsx",UserType.BUYER));
         });
     }
 
     @Test
     void loginWhenCorrectData() {
-        ActivityLog entity = new ActivityLog();
-        entity.setEmail("user1@gmail.com");
-        entity.setActivity(ActivityType.REGISTER);
-        when(activityLogRepository.findByEmail(entity.getEmail())).thenReturn(entity);
-        User user=new User(entity.getEmail(),"Userd",UserType.BUYER);
+        String email="user1@gmail.com";
+        User user=new User(email,"Userd",UserType.BUYER);
         user.setUserId(1L);
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
+        when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
 
         User created=underTest.login(user);
-
         assert(created.equals(user));
     }
 
     @Test
     void loginWhenIncorrectData() {
-        ActivityLog entity = new ActivityLog();
-        entity.setEmail("user1@gmail.com");
-        entity.setActivity(ActivityType.LOGIN);
-        when(activityLogRepository.findByEmail(entity.getEmail())).thenReturn(entity);
-        User user=new User(entity.getEmail(),"Userd",UserType.BUYER);
-        when(userRepository.findByEmail(entity.getEmail())).thenReturn(user);
-
+        String email="user1@gmail.com";
+        User user=new User(email,"Userd",UserType.BUYER);
+        when(userRepository.findByEmail(email)).thenReturn(user);
         Exception exception = assertThrows(Exception.class, () -> {
-            User created=underTest.login(user);
+            underTest.login(user);
         });
     }
 
     @Test
     void logOutCorrectData() {
-        ActivityLog entity = new ActivityLog();
-        entity.setEmail("user1@gmail.com");
-        entity.setActivity(ActivityType.LOGIN);
-        when(activityLogRepository.findByEmail(entity.getEmail())).thenReturn(entity);
-        User user=new User(entity.getEmail(),"Userd",UserType.BUYER);
+        String email="user1@gmail.com";
+        User user=new User(email,"Userd",UserType.BUYER);
         user.setUserId(1L);
-        when(activityLogRepository.save(entity)).thenReturn(entity);
-        when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail(email)).thenReturn(user);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
 
-        User created=underTest.logOut(user);
-
-        assert(created.equals(user));
+        UserResponse created=underTest.logOut(user.getEmail());
+        UserResponse userR=new UserResponse((user));
+        assert(created.equals(userR));
     }
+
     @Test
     void logOutIncorrectData() {
-        ActivityLog entity = new ActivityLog();
-        entity.setEmail("user1@gmail.com");
-        entity.setActivity(ActivityType.REGISTER);
-        when(activityLogRepository.findByEmail(entity.getEmail())).thenReturn(entity);
-        User user=new User(entity.getEmail(),"Userd",UserType.BUYER);
+        String email="user1@gmail.com";
+        User user=new User(email,"Userd",UserType.BUYER);
         when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
-
-
         Exception exception = assertThrows(Exception.class, () -> {
-            User created=underTest.logOut(user);
+            underTest.logOut(user.getEmail());
         });
     }
 }

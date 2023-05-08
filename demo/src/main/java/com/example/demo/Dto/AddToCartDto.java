@@ -12,6 +12,7 @@ import lombok.Setter;
 public class AddToCartDto {
     private Long id;
     private Long productId;
+
     private int quantity;
 
     public AddToCartDto() {

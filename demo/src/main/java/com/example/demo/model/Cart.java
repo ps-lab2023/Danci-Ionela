@@ -2,6 +2,7 @@ package com.example.demo.model;
 
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.List;
@@ -14,7 +15,6 @@ import java.util.Date;
 @Data
 @Getter
 @Setter
-
 public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -32,6 +32,7 @@ public class Cart {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @NotNull
     private int quantity;
 
     public Cart(Date createdDate, Product product, User user, int quantity) {

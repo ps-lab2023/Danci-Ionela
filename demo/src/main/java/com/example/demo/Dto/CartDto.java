@@ -24,4 +24,13 @@ public class CartDto {
                 ", totalCost=" + totalCost +
                 '}';
     }
+
+    public String prettyPrint(){
+        String s="\n\n\nYour products:\n\n";
+        for(CartItemDto cartItemDto:cartItems){
+            s+=cartItemDto.prettyPrint();
+        }
+        s+="\nTotal Cost= "+totalCost + "$\n\n\n";
+        return s;
+    }
 }

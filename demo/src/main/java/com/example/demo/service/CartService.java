@@ -5,15 +5,18 @@ import com.example.demo.Dto.AddToCartDto;
 import com.example.demo.Dto.CartDto;
 import com.example.demo.model.Cart;
 import com.example.demo.model.User;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
 @Component
 public interface CartService {
-    Cart addToCart(AddToCartDto addToCartDto, User user);
+    Cart addToCart(AddToCartDto addToCartDto, String email);
 
-    CartDto listCartItems(User user);
+    CartDto listCartItems(String email);
 
-    void deleteCartItem(Long cartItemId, User user);
+    void sendEmail(String email);
 
-    void deleteAllCartItems(User user);
+    void deleteCartItem(String email, Long productId);
+
+    void deleteAllCartItems(String email);
 }

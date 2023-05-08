@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.Dto.ProductDto;
 import com.example.demo.enums.Category;
 import com.example.demo.model.Product;
 import org.springframework.stereotype.Component;
@@ -10,24 +11,31 @@ import java.util.Optional;
 @Component
 public interface ProductService {
 
+    List<ProductDto> getAllProducts();
 
-    List<Product> getAllProducts();
     Product createProduct(Product product);
+
     void deteleProduct(Long product_id);
+
     void updateProduct(Product product,Long id);
+
     List<Product> findBySex(String sex) ;
+
     List<Product> findByCategory(Category category);
-    List<Product> findBySexBeforeAndCategory(String sex,Category category);
-    List<Product> findBySexBeforeAndCategoryAndBrand(String sex,Category category,String brand);
-    List<Product> findBySexBeforeAndCategoryAndPrice(String sex,Category category,Long pret);
+
+    List<ProductDto> findBySexBeforeAndCategory(String sex,Category category);
+
+    List<ProductDto> findBySexBeforeAndCategoryAndBrand(String sex,Category category,String brand);
 
     Optional<Product> findById(long productId);
 
-    /*List<Product> findBySexBeforeAndCategoryAndBrandOrderByPrice(String sex, Category category, String brand,Long price);
+    List<ProductDto> findAllByNameLike(String name);
 
-    //List<Product> findBySexBeforeAndCategoryOrderByPrice(String sex, Category category, Long price);
+    List<ProductDto> findAllBySexAndCategoryAndBrandOrderByPriceAsc(String sex, Category category, String brand);
 
-    List<Product> findBySexOrderByPrice(String sex, Long price);
+    List<ProductDto> findAllBySexAndCategoryAndBrandOrderByPriceDesc(String sex, Category category, String brand);
 
-    List<Product> findByCategoryOrderByPrice( Category category, Long price);*/
+    List<ProductDto> findAllBySexAndCategoryOrderByPriceDesc(String sex, Category category);
+
+    List<ProductDto> findAllBySexAndCategoryOrderByPriceAsc(String sex, Category category);
 }

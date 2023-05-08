@@ -1,28 +1,21 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.enums.ActivityType;
+import com.example.demo.Dto.UserResponse;
 import com.example.demo.enums.UserType;
-import com.example.demo.model.ActivityLog;
 import com.example.demo.model.User;
-import com.example.demo.repository.ActivityLogRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
 public class UserServiceImplementare implements UserService {
 
     private final UserRepository userRepo;
-    private final ActivityLogRepository activityLogEntityRepo;
-
-
 
     @SneakyThrows
     @Override
@@ -37,86 +30,113 @@ public class UserServiceImplementare implements UserService {
         return userRepo.findByUserId(id);
     }
 
-
     @Override
-    public User createUser(User user) {
-        return userRepo.save(user);
+    public UserResponse createUser(User user) {
+        User createdUser = userRepo.save(user);
+        return new UserResponse(createdUser);
     }
 
     @Override
-    public List<User> findAll() {
-        return  (List<User>) userRepo.findAll();
-
+    public List<UserResponse> findAll() {
+        List<User> userList=  (List<User>) userRepo.findAll();
+        List<UserResponse> userDtoList= new ArrayList<>();
+        for(User user: userList){
+            userDtoList.add(new UserResponse(user));
+        }
+        return userDtoList;
     }
 
 
     @SneakyThrows
     @Override
     public User register(User user1) {
-
-        ActivityLog entity = new ActivityLog();
         User user=new User(user1.getEmail(),user1.getPassword(),UserType.BUYER);
         if(user1.getEmail().length()<5 || user1.getPassword().length()<5){
-            entity.setActivity(ActivityType.INVALID_REGISTER);
-            entity.setEmail("---");
-            activityLogEntityRepo.save(entity);
+
             throw new Exception("Invalid Register");
         }
-        entity.setEmail(user.getEmail());
-        entity.setActivity(ActivityType.REGISTER);
-        entity.setUser(user1);
-        activityLogEntityRepo.save(entity);
-
+        userRepo.save(user);
+        System.out.println(user.getUserId());
+        this.setLogedVar(user.getUserId(), true);
         return user;
     }
 
     @SneakyThrows
     public User login(User user) {
-        Optional<User> optionalUser = userRepo.findById(user.getUserId());
-
-        ActivityLog entity = activityLogEntityRepo.findByEmail(user.getEmail());
-        if(!Objects.nonNull(optionalUser)){
-            entity.setActivity(ActivityType.INVALID_LOGIN);
+        User user1 = userRepo.findByEmail(user.getEmail());
+        if(!Objects.nonNull(user1)){
             throw new Exception("Invalid email");
         }
-        User user1=optionalUser.get();
         if(!user1.getPassword().equals(user.getPassword()) || !user1.getRole().equals(user.getRole())){
-            entity.setActivity(ActivityType.INVALID_LOGIN);
+
             throw new Exception("Invalid password/role");
         }
-        if(entity.getActivity().equals(ActivityType.LOGIN)){
-            throw new Exception("Already loged in");
-        }
-        entity.setActivity(ActivityType.LOGIN);
-        activityLogEntityRepo.save(entity);
+        System.out.println(user1.getUserId());
+        this.setLogedVar(user1.getUserId(), true);
         return user1;
     }
 
     @Override
-    public User loginBuyer(User user) throws Exception {
+    public User loginBuyer(User user)  {
         return login(user);
     }
 
     @Override
-    public User loginAdmin(User user) throws Exception {
+    public User loginAdmin(User user)  {
         return login(user);
     }
 
     @SneakyThrows
     @Override
-    public User logOut(User user) {
-        Optional<User> optionalUser = userRepo.findById(user.getUserId());
-        ActivityLog entity = activityLogEntityRepo.findByEmail(user.getEmail());
-        if(!optionalUser.isPresent() || !Objects.nonNull(entity)){
-            throw new Exception("Invalid ");
-        }
-        User user1=optionalUser.get();
-        if(!entity.getActivity().equals(ActivityType.LOGIN)){
-            throw new Exception("not conected ");
-        }
-        entity.setActivity(ActivityType.SIGN_OUT);
-        activityLogEntityRepo.save(entity);
-        return user1;
+    public UserResponse logOut(String email) {
+        User user1 = userRepo.findByEmail(email);
+
+        this.setLogedVar(user1.getUserId(), false);
+        return new UserResponse(user1);
     }
 
+    @Override
+    public User findByEmail(String email) {
+        return userRepo.findByEmail(email);
+    }
+
+    @SneakyThrows
+    @Override
+    public void setLogedVar(Long id, boolean loged){
+        System.out.println(id);
+        User user = userRepo.findByUserId(id).orElseThrow(()->new Exception("Id not found"));
+        user.setUserId(id);
+        user.setLoged(loged);
+        userRepo.save(user);
+    }
+
+    @SneakyThrows
+    @Override
+    public boolean getLogedVar(String email){
+        User user = userRepo.findByEmail(email);
+
+        return user.isLoged();
+    }
+
+    @Override
+    public String forgotPassword(String email){
+        int leftLimit = 97; // letter 'a'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = 8;
+        Random random = new Random();
+
+        String generatedString = random.ints(leftLimit, rightLimit + 1)
+                .limit(targetStringLength)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+        User user=userRepo.findByEmail(email);
+        user.setPassword(generatedString);
+        updateUser(user, user.getUserId());
+        return generatedString;
+    }
+
+    @Override
+    public void deleteById(Long id) {
+         userRepo.deleteById(id);
+    }
 }

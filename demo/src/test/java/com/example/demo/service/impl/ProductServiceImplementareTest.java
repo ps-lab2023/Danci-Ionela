@@ -1,8 +1,11 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.Dto.ProductDto;
 import com.example.demo.enums.Category;
 import com.example.demo.model.Product;
+import com.example.demo.repository.CartRepository;
 import com.example.demo.repository.ProductRepository;
+import com.example.demo.repository.WishListRepo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -34,11 +37,15 @@ class ProductServiceImplementareTest {
     private AutoCloseable autoCloseable;
     @Mock
     private ProductRepository productRepository;
+    @Mock
+    private CartRepository cartRepository;
+    @Mock
+    private WishListRepo wishListRepo;
 
     @BeforeEach
     void setUp(){
         autoCloseable=MockitoAnnotations.openMocks(this);
-        underTest=new ProductServiceImplementare(productRepository);
+        underTest=new ProductServiceImplementare(productRepository,cartRepository,wishListRepo);
     }
 
     @AfterEach
@@ -167,47 +174,24 @@ class ProductServiceImplementareTest {
         Product product=new Product("p1", Category.Boots,"Zara","F", 200L,"dkc.url");
         underTest.findBySexBeforeAndCategory(product.getSex(),product.getCategory());
 
-        verify(productRepository).findBySexBeforeAndCategory(product.getSex(),product.getCategory());
+        verify(productRepository).findAllBySexAndCategory(product.getSex(),product.getCategory());
 
     }
     @Test
     void notFindBySexBeforeAndCategory() {
-        when(productRepository.findBySexBeforeAndCategory("F",Category.Boots)).thenReturn(null);
-        List<Product> productList=underTest.findBySexBeforeAndCategory("F",Category.Boots);
+        when(productRepository.findAllBySexAndCategory("F",Category.Boots)).thenReturn(null);
+        List<ProductDto> productList=underTest.findBySexBeforeAndCategory("F",Category.Boots);
 
         assertNull(productList);
     }
-    @Test
-    void findBySexBeforeAndCategoryAndBrand() {
-        Product product=new Product("p1", Category.Boots,"Zara","F", 200L,"dkc.url");
-        underTest.findBySexBeforeAndCategoryAndBrand(product.getSex(),product.getCategory(),product.getBrand());
 
-        verify(productRepository).findBySexBeforeAndCategoryAndBrand(product.getSex(),product.getCategory(),product.getBrand());
-
-    }
 
     @Test
     void notFindBySexBeforeAndCategoryAndBrand(){
-        when(productRepository.findBySexBeforeAndCategoryAndBrand("F",Category.Boots,"Zara")).thenReturn(null);
-        List<Product> productList=underTest.findBySexBeforeAndCategoryAndBrand("F",Category.Boots,"Zara");
+        when(productRepository.findAllBySexAndCategoryAndBrand("F",Category.Boots,"Zara")).thenReturn(null);
+        List<ProductDto> productList=underTest.findBySexBeforeAndCategoryAndBrand("F",Category.Boots,"Zara");
 
         assertNull(productList);
     }
 
-    @Test
-    void findBySexBeforeAndCategoryAndPrice() {
-        Product product=new Product("p1", Category.Boots,"Zara","F", 200L,"dkc.url");
-        underTest.findBySexBeforeAndCategoryAndPrice(product.getSex(),product.getCategory(),product.getPrice());
-
-        verify(productRepository).findBySexBeforeAndCategoryAndPrice(product.getSex(),product.getCategory(),product.getPrice());
-
-    }
-
-    @Test
-    void notFindBySexBeforeAndCategoryAndPrice(){
-        when(productRepository.findBySexBeforeAndCategoryAndPrice("F",Category.Boots,200L)).thenReturn(null);
-        List<Product> productList=underTest.findBySexBeforeAndCategoryAndPrice("F",Category.Boots,200L);
-
-        assertNull(productList);
-    }
 }

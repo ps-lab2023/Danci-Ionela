@@ -12,21 +12,20 @@ import java.util.Date;
 @Data
 @Getter
 @Setter
-
 public class WishList {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long wishlistId;
 
     @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name="user_id")
     private User user;
 
-    @Column(name = "created_date")
+    @Column
     private Date createdDate;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
+    @JoinColumn
     private Product product;
 
     public WishList(User user, Date createdDate, Product product) {
